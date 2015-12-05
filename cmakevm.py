@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import argparse, os, urllib, tarfile
+import argparse, os, urllib, tarfile, subprocess
 
 versions_darwin = {
 	"3.4.0":"https://cmake.org/files/v3.4/cmake-3.4.0-Darwin-x86_64.tar.gz",
@@ -47,11 +47,25 @@ def get_installed_dir(version):
 	dirname = filename.replace(".tar.gz", "")
 	return os.path.join(cmakevm_home, dirname)
 
-def add_to_path_osx(version):
+def get_installed_cmake_bin_dir(version):
 	installed_dir = get_installed_dir(version)
-	path_cmake_bin = os.path.join(installed_dir, 'CMake.app/Contents/bin/')
+	return os.path.join(installed_dir, 'CMake.app/Contents/bin/')
+
+def write_file_for_path(version):
+	path_cmake_bin = get_installed_cmake_bin_dir(version)
+	file_path = os.path.join(cmakevm_home, version+".sh")
+	with open(file_path, 'w') as f:
+		f.write("export PATH="+path_cmake_bin+":$PATH")
+	return file_path
+
+def add_to_path_osx(version):
+	path_cmake_bin = get_installed_cmake_bin_dir(version)
 	print("Adding "+path_cmake_bin+" to $PATH")
 	os.environ["PATH"] = path_cmake_bin + os.pathsep + os.environ["PATH"]
+
+def new_shell():
+	print("Spawnig a new bash shell with the new $PATH")
+	subprocess.check_call(["/usr/bin/env","bash","-i"])
 
 def download_one(version):
 	create_home_folder_if_needed()
@@ -91,7 +105,10 @@ def main():
 		version_to_install = args.install
 		download_one(version_to_install)
 		install_one(version_to_install)
-		add_to_path_osx(version_to_install)
+		#add_to_path_osx(version_to_install)
+		#new_shell()
+		file_path = write_file_for_path(version_to_install)
+		print("Please run 'source " + file_path+"'")
 
     # my code here
 
