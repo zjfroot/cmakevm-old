@@ -41,6 +41,18 @@ def get_local_path(version):
 	filename = url.split("/")[-1]
 	return os.path.join(cmakevm_home, filename)
 
+def get_installed_dir(version):
+	url = versions_darwin[version]
+	filename = url.split("/")[-1]
+	dirname = filename.replace(".tar.gz", "")
+	return os.path.join(cmakevm_home, dirname)
+
+def add_to_path_osx(version):
+	installed_dir = get_installed_dir(version)
+	path_cmake_bin = os.path.join(installed_dir, 'CMake.app/Contents/bin/')
+	print("Adding "+path_cmake_bin+" to $PATH")
+	os.environ["PATH"] = path_cmake_bin + os.pathsep + os.environ["PATH"]
+
 def download_one(version):
 	create_home_folder_if_needed()
 	local_path = get_local_path(version)
@@ -79,6 +91,7 @@ def main():
 		version_to_install = args.install
 		download_one(version_to_install)
 		install_one(version_to_install)
+		add_to_path_osx(version_to_install)
 
     # my code here
 
